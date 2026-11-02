@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f9d78">
+<meta name="color-scheme" content="light dark">
 <title>صيدليتي</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
@@ -41,15 +42,29 @@
   </header>
 
   <div class="stats">
-    <div class="stat"><b id="stTotal">0</b><span>الكل</span></div>
+    <div class="stat"><b id="stTotal">0</b><span>الأدوية</span></div>
     <div class="stat warn"><b id="stLow">0</b><span>قليل</span></div>
     <div class="stat bad"><b id="stOut">0</b><span>خالص</span></div>
     <div class="stat soon"><b id="stSoon">0</b><span>ينتهي قريباً</span></div>
   </div>
+  <div class="stats2">
+    <div class="stat wide"><span>مبيعات اليوم</span><b id="stSales">0 د.ع</b><small id="stSalesSub"></small></div>
+    <div class="stat wide"><span>قيمة المخزون</span><b id="stValue">0 د.ع</b></div>
+  </div>
 
   <div class="searchbar">
     <input id="search" type="search" placeholder="ابحث بالاسم أو الباركود...">
-    <button id="scanSearch" class="icon-btn" title="مسح باركود">▦</button>
+    <button id="scanSearch" class="icon-btn solid" title="مسح باركود">▦</button>
+  </div>
+
+  <div class="sortbar">
+    <label for="sortSel">ترتيب:</label>
+    <select id="sortSel">
+      <option value="name">الاسم</option>
+      <option value="qty">الأقل كمية</option>
+      <option value="expiry">الأقرب انتهاءً</option>
+      <option value="new">الأحدث تعديلاً</option>
+    </select>
   </div>
 
   <nav class="tabs">
@@ -58,6 +73,15 @@
     <button class="tab" data-tab="soon">الانتهاء</button>
     <button class="tab" data-tab="logs">السجل</button>
   </nav>
+
+  <div id="logFilters" class="logfilters hidden">
+    <button class="chipf active" data-lf="all">الكل</button>
+    <button class="chipf" data-lf="sell">بيع</button>
+    <button class="chipf" data-lf="restock">إضافة كمية</button>
+    <button class="chipf" data-lf="add">دواء جديد</button>
+    <button class="chipf" data-lf="edit">تعديل</button>
+    <button class="chipf" data-lf="delete">حذف</button>
+  </div>
 
   <main id="list"></main>
 
@@ -89,17 +113,29 @@
     </div>
 
     <div class="grid2">
-      <div><label>السعر (للعلبة)</label><input id="fPrice" type="number" min="0" step="any" inputmode="decimal"></div>
       <div><label>التصنيف</label><input id="fCategory" placeholder="مسكنات، مضادات..."></div>
-      <div><label>أشرطة بالعلبة الواحدة</label><input id="fSpb" type="number" min="1" value="1" inputmode="numeric"></div>
-      <div><label>حد التنبيه (علب)</label><input id="fMin" type="number" min="0" value="5" inputmode="numeric"></div>
-      <div><label>عدد العلب *</label><input id="fBoxes" type="number" min="0" required inputmode="numeric"></div>
-      <div><label>أشرطة فرط (خارج العلب)</label><input id="fStrips" type="number" min="0" value="0" inputmode="numeric"></div>
+      <div><label>تاريخ الانتهاء</label><input id="fExpiry" type="date"></div>
     </div>
-    <p class="hint">إذا الدواء ما ينباع بالشريط (شراب، حقنة...) اترك الأشرطة بالعلبة = 1.</p>
 
-    <label>تاريخ الانتهاء</label>
-    <input id="fExpiry" type="date">
+    <fieldset>
+      <legend>التعبئة والسعر</legend>
+      <div class="grid2">
+        <div><label>عدد الأشرطة بالعلبة</label><input id="fSpb" type="number" min="1" value="1" inputmode="numeric"></div>
+        <div><label id="priceLabel">سعر الشريط (د.ع)</label><input id="fPrice" type="number" min="0" step="any" inputmode="decimal"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>الكمية المتوفرة</legend>
+      <div class="grid2">
+        <div><label>علب كاملة *</label><input id="fBoxes" type="number" min="0" required inputmode="numeric"></div>
+        <div id="stripsWrap"><label>أشرطة فرط</label><input id="fStrips" type="number" min="0" value="0" inputmode="numeric"></div>
+      </div>
+      <label>نبّهني عند أقل من (علب)</label>
+      <input id="fMin" type="number" min="0" value="5" inputmode="numeric">
+    </fieldset>
+
+    <div id="summary" class="summary"></div>
 
     <label>ملاحظات</label>
     <textarea id="fNotes" rows="2"></textarea>
