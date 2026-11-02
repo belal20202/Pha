@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f9d78">
+<title>صيدليتي</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- شاشة الدخول -->
+<section id="auth" class="screen">
+  <div class="auth-box">
+    <img src="icon.svg" class="logo" alt="">
+    <h1>صيدليتي</h1>
+    <p class="sub">نظام إدارة المخزون المشترك</p>
+    <form id="authForm">
+      <input id="userName" class="reg-only hidden" placeholder="اسمك" autocomplete="name">
+      <input id="email" type="email" placeholder="البريد الإلكتروني" required autocomplete="email">
+      <input id="password" type="password" placeholder="كلمة المرور" required minlength="6" autocomplete="current-password">
+      <input id="pharmacyCode" class="reg-only hidden" placeholder="رمز الصيدلية (مثال: ph-k7x2m9qd4wz8)" dir="ltr">
+      <p class="hint reg-only hidden">كل الموظفين يكتبون نفس الرمز ليشوفون نفس الأدوية. الرمز الجديد ينشئ صيدلية جديدة.</p>
+      <button id="authBtn" class="btn primary" type="submit">دخول</button>
+      <p id="authErr" class="err"></p>
+    </form>
+    <button id="toggleAuth" class="link">ليس لديك حساب؟ إنشاء حساب</button>
+  </div>
+</section>
+
+<!-- التطبيق -->
+<section id="app" class="screen hidden">
+  <header>
+    <div>
+      <b>💊 صيدليتي</b>
+      <small id="pharmName"></small>
+    </div>
+    <button id="logout" class="icon-btn" title="خروج">⎋</button>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b id="stTotal">0</b><span>الكل</span></div>
+    <div class="stat warn"><b id="stLow">0</b><span>قليل</span></div>
+    <div class="stat bad"><b id="stOut">0</b><span>خالص</span></div>
+    <div class="stat soon"><b id="stSoon">0</b><span>ينتهي قريباً</span></div>
+  </div>
+
+  <div class="searchbar">
+    <input id="search" type="search" placeholder="ابحث بالاسم أو الباركود...">
+    <button id="scanSearch" class="icon-btn" title="مسح باركود">▦</button>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="all">الكل</button>
+    <button class="tab" data-tab="low">النواقص</button>
+    <button class="tab" data-tab="soon">الانتهاء</button>
+    <button class="tab" data-tab="logs">السجل</button>
+  </nav>
+
+  <main id="list"></main>
+
+  <button id="fab" class="fab" title="إضافة دواء">＋</button>
+</section>
+
+<!-- نافذة إضافة / تعديل دواء -->
+<div id="medModal" class="modal hidden">
+  <form id="medForm" class="sheet">
+    <h2 id="formTitle">إضافة دواء</h2>
+
+    <div class="img-row">
+      <img id="imgPreview" class="img-preview" alt="">
+      <div class="img-btns">
+        <label class="btn small">📷 تصوير / اختيار صورة
+          <input id="imgInput" type="file" accept="image/*" hidden>
+        </label>
+        <button type="button" id="imgRemove" class="btn small ghost">إزالة الصورة</button>
+      </div>
+    </div>
+
+    <label>اسم الدواء *</label>
+    <input id="fName" required>
+
+    <label>الباركود</label>
+    <div class="row">
+      <input id="fBarcode" dir="ltr" inputmode="numeric">
+      <button type="button" id="scanForm" class="btn small">▦ مسح</button>
+    </div>
+
+    <div class="grid2">
+      <div><label>السعر (للعلبة)</label><input id="fPrice" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div><label>التصنيف</label><input id="fCategory" placeholder="مسكنات، مضادات..."></div>
+      <div><label>أشرطة بالعلبة الواحدة</label><input id="fSpb" type="number" min="1" value="1" inputmode="numeric"></div>
+      <div><label>حد التنبيه (علب)</label><input id="fMin" type="number" min="0" value="5" inputmode="numeric"></div>
+      <div><label>عدد العلب *</label><input id="fBoxes" type="number" min="0" required inputmode="numeric"></div>
+      <div><label>أشرطة فرط (خارج العلب)</label><input id="fStrips" type="number" min="0" value="0" inputmode="numeric"></div>
+    </div>
+    <p class="hint">إذا الدواء ما ينباع بالشريط (شراب، حقنة...) اترك الأشرطة بالعلبة = 1.</p>
+
+    <label>تاريخ الانتهاء</label>
+    <input id="fExpiry" type="date">
+
+    <label>ملاحظات</label>
+    <textarea id="fNotes" rows="2"></textarea>
+
+    <div class="row end">
+      <button type="button" id="cancelForm" class="btn ghost">إلغاء</button>
+      <button type="submit" class="btn primary">حفظ</button>
+    </div>
+  </form>
+</div>
+
+<!-- نافذة بيع / إضافة كمية -->
+<div id="qtyModal" class="modal hidden">
+  <form id="qtyForm" class="sheet">
+    <h2 id="qtyTitle"></h2>
+    <p id="qtyCurrent" class="hint"></p>
+    <div class="seg">
+      <label><input type="radio" name="qtype" value="sell" checked> بيع</label>
+      <label><input type="radio" name="qtype" value="add"> إضافة</label>
+    </div>
+    <div class="grid2">
+      <div><label>علب</label><input id="qBoxes" type="number" min="0" value="0" inputmode="numeric"></div>
+      <div id="qStripsWrap"><label>أشرطة</label><input id="qStrips" type="number" min="0" value="0" inputmode="numeric"></div>
+    </div>
+    <div class="row end">
+      <button type="button" id="cancelQty" class="btn ghost">إلغاء</button>
+      <button type="submit" class="btn primary">تنفيذ</button>
+    </div>
+  </form>
+</div>
+
+<!-- ماسح الباركود -->
+<div id="scanner" class="scanner hidden">
+  <div id="reader"></div>
+  <button id="closeScan" class="btn primary">إغلاق</button>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
