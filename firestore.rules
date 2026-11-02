@@ -2,15 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // كل مستخدم يقرأ ويكتب ملفه فقط
+    function isMember(pid) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.pharmacyId == pid;
+    }
+
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // بيانات الصيدلية: فقط لمن رمز صيدليته يطابق
-    match /pharmacies/{pid}/{document=**} {
-      allow read, write: if request.auth != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.pharmacyId == pid;
+    // الأدوية: لا يُسمح بكمية سالبة
+    match /pharmacies/{pid}/medicines/{id} {
+      allow read, delete: if isMember(pid);
+      allow create, update: if isMember(pid) && request.resource.data.qty >= 0;
+    }
+
+    match /pharmacies/{pid}/images/{id} {
+      allow read, write: if isMember(pid);
+    }
+
+    match /pharmacies/{pid}/daily/{id} {
+      allow read, write: if isMember(pid);
+    }
+
+    // السجل: يُضاف فقط، لا يُعدَّل ولا يُحذف
+    match /pharmacies/{pid}/logs/{id} {
+      allow read, create: if isMember(pid);
+      allow update, delete: if false;
     }
   }
 }
